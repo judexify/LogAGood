@@ -1,12 +1,40 @@
+"use client";
 import { Bell, MapPin } from "lucide-react";
 import Image from "next/image";
+import { useUser } from "./UserContext";
+import { usePathname } from "next/navigation";
+import { adminPageText } from "@/lib/page-text.ts/admin";
+import { riderPageText } from "@/lib/page-text.ts/rider";
+import { customerPageText } from "@/lib/page-text.ts/customerPageText";
+import { getPageTextMap, getTimeOfDayGreeting } from "@/lib/utils";
 
-function Header() {
+function Header({
+  userName,
+  role,
+}: {
+  userName: string;
+  role: "admin" | "rider" | "customer";
+}) {
+  const pathname = usePathname();
+
+  const timeofDay = getTimeOfDayGreeting();
+  const pageTextMap = getPageTextMap(role);
+
+  const roleHome = `/${role}`;
+  const isHome = pathname === roleHome;
+
+  const content = isHome
+    ? {
+        title: `${timeofDay}, ${userName} 👋`,
+        subtitle: "Here's what's happening in Ilorin today",
+      }
+    : (pageTextMap[pathname] ?? { title: "", subtitle: "" });
+
   return (
     <header className="flex items-center justify-between sticky top-0 h-20 px-6">
       <div>
-        <span className="font-semibold">Good Morning, Jude Oluwadunsi.👋</span>
-        <p>Here's what's happening in ilorin today</p>
+        <span className="font-semibold">{content.title}</span>
+        <p>{content.subtitle}</p>
       </div>
 
       <div className="flex items-center gap-5 ">

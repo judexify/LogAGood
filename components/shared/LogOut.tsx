@@ -16,6 +16,7 @@ import { Button, buttonVariants } from "../ui/button";
 import { cn } from "@/lib/utils";
 import { useFormStatus } from "react-dom";
 import { Spinner } from "../ui/spinner";
+import UserLogout from "./UserLogout";
 
 function LogOut() {
   return (
@@ -28,10 +29,7 @@ function LogOut() {
           height={32}
           className="rounded-full w-8 h-8 object-cover"
         />
-        <div className="flex flex-col">
-          <span className="text-brand-neutral ">Oluwadunsi</span>
-          <span className="text-brand-lighter-primary">Admin</span>
-        </div>
+        <UserLogout />
       </div>
       <LogOutButton />
     </div>
