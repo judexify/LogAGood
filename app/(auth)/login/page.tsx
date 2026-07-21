@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Spinner } from "@/components/ui/spinner";
 import { login } from "@/lib/action";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useActionState } from "react";
+import { Suspense, useActionState, useState } from "react";
 
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -32,11 +32,17 @@ function Login() {
     message: "",
   });
   const router = useRouter();
+  // i realised the login button reverts back early,
+  //  so i used a state to monitor it
+
+  const [isRedirecting, setIsRedirection] = useState(false);
 
   useEffect(() => {
     if (state.success) {
+      setIsRedirection(true);
       router.push(search ?? "/");
-      router.refresh(); // ensures Server Components re-check the new session
+      // ensures Server Components re-check the new session
+      router.refresh();
     }
   }, [state.success]);
 
@@ -110,9 +116,9 @@ function Login() {
           <button
             type="submit"
             className="w-full mt-2 px-4 py-3 bg-brand-primary hover:bg-brand-secondary active:scale-[0.98] text-white font-medium rounded-xl shadow-sm shadow-blue-500/10 transition-all duration-150 cursor-pointer text-center flex justify-center disabled:bg-brand-lighter-primary disabled:text-black disabled:cursor-not-allowed"
-            disabled={isPending}
+            disabled={isPending || isRedirecting}
           >
-            {isPending ? (
+            {isPending || isRedirecting ? (
               <div className="flex items-center justify-center gap-2">
                 <span>Logging In </span>
                 <Spinner />
