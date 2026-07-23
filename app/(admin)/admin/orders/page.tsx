@@ -1,5 +1,11 @@
+import Orders from "@/components/admin/Orders";
+
 function page() {
-  return <div>orders</div>;
+  return (
+    <>
+      <Orders />
+    </>
+  );
 }
 
 export default page;
