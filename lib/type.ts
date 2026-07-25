@@ -45,3 +45,7 @@ export type GetOrdersOptions = {
   sortBy?: "recent" | "oldest";
   searchQuery?: string;
 };
+export type LoginState = {
+  success: boolean | null;
+  message: string;
+};

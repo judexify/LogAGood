@@ -11,10 +11,11 @@ import {
 
 import { statusColors } from "../types";
 import { OrderListItem, Priority } from "@/lib/type";
-
+import { motion, type Variants } from "motion/react";
 import { formatStatus } from "@/lib/utils";
 import OrdersPagination from "./OrderPagination";
 import { useRouter } from "next/navigation";
+import { format, parseISO } from "date-fns";
 
 const priorityColors: Record<Priority, { bg: string; text: string }> = {
   normal: { bg: "bg-slate-100", text: "text-slate-600" },
@@ -33,6 +34,23 @@ function OrdersTable({
   pageSize: number;
 }) {
   const router = useRouter();
+
+  const tableVariants: Variants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.3,
+        ease: "easeOut",
+      },
+    },
+  };
+
+  const rowVariants: Variants = {
+    hidden: { opacity: 0, y: 12 },
+    visible: { opacity: 1, y: 0 },
+  };
 
   return (
     <div className="bg-white rounded-xl">
@@ -63,60 +81,85 @@ function OrdersTable({
           </TableRow>
         </TableHeader>
 
-        <TableBody>
-          {orders.map((order) => (
-            <TableRow
-              key={order.id}
-              className="hover:bg-brand-lightest-primary"
-              onClick={() => router.push(`/admin/orders/${order.id}`)}
-            >
-              <TableCell className="text-brand-secondary font-medium p-4">
-                {order.id.slice(0, 8)}
-              </TableCell>
-
-              <TableCell className="p-4">
-                <p className="font-medium text-slate-800">
-                  {order.customer.full_name}
-                </p>
-                <p className="text-xs text-slate-400">{order.customer.phone}</p>
-              </TableCell>
-
-              <TableCell className="p-4">
-                <p className="text-sm">from {order.pickup_address}</p>
-                <p className="text-sm">to {order.dropoff_address}</p>
-              </TableCell>
-
-              <TableCell className="p-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm">{order.rider?.user.full_name}</span>
-                </div>
-              </TableCell>
-
-              <TableCell className="p-4">
-                <span
-                  className={`text-xs font-medium px-3 py-1 rounded-full ${priorityColors[order.priority].bg} ${priorityColors[order.priority].text}`}
-                >
-                  {order.priority === "express" ? "Express" : "Normal"}
-                </span>
-              </TableCell>
-
-              <TableCell className="p-4">
-                <span
-                  className={`text-xs font-medium px-3 py-1 rounded-full ${statusColors[order.status].bg} ${statusColors[order.status].text}`}
-                >
-                  {formatStatus(order.status)}
-                </span>
-              </TableCell>
-
-              <TableCell className="p-4 text-sm text-slate-500">
-                {order.created_at}
+        <motion.tbody
+          variants={tableVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          {orders.length === 0 ? (
+            <TableRow>
+              <TableCell
+                colSpan={7}
+                className="text-center py-12 text-slate-400"
+              >
+                No records found
               </TableCell>
             </TableRow>
-          ))}
-        </TableBody>
+          ) : (
+            orders.map((order) => (
+              <motion.tr
+                key={order.id}
+                variants={rowVariants}
+                className="hover:bg-brand-lightest-primary"
+                onClick={() => router.push(`/admin/orders/${order.id}`)}
+              >
+                <TableCell className="text-brand-secondary font-medium p-4">
+                  {order.id.slice(0, 8)}
+                </TableCell>
+
+                <TableCell className="p-4">
+                  <p className="font-medium text-slate-800">
+                    {order.customer.full_name}
+                  </p>
+                  <p className="text-xs text-slate-400">
+                    {order.customer.phone}
+                  </p>
+                </TableCell>
+
+                <TableCell className="p-4">
+                  <p className="text-sm">from {order.pickup_address}</p>
+                  <p className="text-sm">to {order.dropoff_address}</p>
+                </TableCell>
+
+                <TableCell className="p-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">
+                      {order.rider?.user.full_name}
+                    </span>
+                  </div>
+                </TableCell>
+
+                <TableCell className="p-4">
+                  <span
+                    className={`text-xs font-medium px-3 py-1 rounded-full ${priorityColors[order.priority].bg} ${priorityColors[order.priority].text}`}
+                  >
+                    {order.priority === "express" ? "Express" : "Normal"}
+                  </span>
+                </TableCell>
+
+                <TableCell className="p-4">
+                  <span
+                    className={`text-xs font-medium px-3 py-1 rounded-full ${statusColors[order.status].bg} ${statusColors[order.status].text}`}
+                  >
+                    {formatStatus(order.status)}
+                  </span>
+                </TableCell>
+
+                <TableCell className="p-4 text-sm text-slate-500">
+                  {format(
+                    parseISO(order.created_at),
+                    "MMMM d, yyyy ',' h:mm a",
+                  )}
+                </TableCell>
+              </motion.tr>
+            ))
+          )}
+        </motion.tbody>
       </Table>
 
-      <OrdersPagination count={count} page={page} pageSize={pageSize} />
+      {orders.length > 0 && (
+        <OrdersPagination count={count} page={page} pageSize={pageSize} />
+      )}
     </div>
   );
 }

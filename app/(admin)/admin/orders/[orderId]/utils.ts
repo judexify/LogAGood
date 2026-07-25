@@ -26,25 +26,22 @@ export function buildOrderTimeline(
   history: { status: string; changed_at: string }[],
   currentStatus: string,
 ): TimelineStep[] {
-  return STEP_SEQUENCE.map((step) => {
+  const currentIndex = STEP_SEQUENCE.indexOf(
+    currentStatus as (typeof STEP_SEQUENCE)[number],
+  );
+
+  return STEP_SEQUENCE.map((step, index) => {
     const match = history.find((h) => h.status === step);
 
-    if (step === currentStatus) {
-      return {
-        label: STEP_LABELS[step],
-        time: match?.changed_at ?? null,
-        state: "current",
-      };
-    }
+    let state: TimelineState = "upcoming";
 
-    if (match) {
-      return {
-        label: STEP_LABELS[step],
-        time: match.changed_at,
-        state: "done",
-      };
-    }
+    if (index < currentIndex) state = "done";
+    if (index === currentIndex) state = "current";
 
-    return { label: STEP_LABELS[step], time: null, state: "upcoming" };
+    return {
+      label: STEP_LABELS[step],
+      time: match?.changed_at ?? null,
+      state,
+    };
   });
 }

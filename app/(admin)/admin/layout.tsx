@@ -5,6 +5,7 @@ import SideNavigation from "@/components/shared/SideNavigation";
 import { getCurrentUser } from "@/lib/data-service";
 import { createClient } from "@/lib/supabase/server";
 import { Metadata } from "next";
+import { Toaster } from "@/components/ui/toast";
 
 export const metadata: Metadata = {
   title: "LogAGood | Admin Dashboard",
@@ -24,19 +25,23 @@ async function AdminLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="grid grid-cols-[260px_1fr] grid-rows-[auto_1fr] h-screen">
-      <UserProvider user={{ ...currentUser, id: userId! }}>
-        <div className="row-span-2">
-          <SideNavigation>
-            <AdminNavLinks />
-          </SideNavigation>
-        </div>
+    <>
+      <div className="grid grid-cols-[260px_1fr] grid-rows-[auto_1fr] h-screen">
+        <UserProvider user={{ ...currentUser, id: userId! }}>
+          <div className="row-span-2">
+            <SideNavigation>
+              <AdminNavLinks />
+            </SideNavigation>
+          </div>
 
-        <Header userName={currentUser.full_name} role={currentUser.role} />
+          <Header userName={currentUser.full_name} role={currentUser.role} />
 
-        <div className="overflow-y-auto p-6 bg-brand-neutral">{children}</div>
-      </UserProvider>
-    </div>
+          <div className="overflow-y-auto p-6 bg-brand-neutral">{children}</div>
+        </UserProvider>
+      </div>
+
+      <Toaster />
+    </>
   );
 }
 export default AdminLayout;

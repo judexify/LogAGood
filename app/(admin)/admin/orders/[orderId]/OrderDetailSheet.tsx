@@ -7,13 +7,22 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Pencil, Printer, Phone, MapPin, Navigation } from "lucide-react";
+import {
+  Pencil,
+  Printer,
+  Phone,
+  MapPin,
+  Navigation,
+  Check,
+} from "lucide-react";
 
 import { formatStatus } from "@/lib/utils";
 import { notFound, useRouter } from "next/navigation";
 import { statusColors } from "@/components/types";
 import { OrderWithRelations } from "@/lib/type";
 import { buildOrderTimeline } from "./utils";
+import CompleteOrderBtn from "./CompleteOrderBtn";
+import { format, parseISO } from "date-fns";
 
 export default function OrderDetailSheet({
   order,
@@ -42,7 +51,11 @@ export default function OrderDetailSheet({
                   {formatStatus(order.status)}
                 </span>
                 <span className="text-sm text-slate-400">
-                  Created {order.created_at}
+                  Created{" "}
+                  {format(
+                    parseISO(order.created_at),
+                    "MMMM d, yyyy 'at' h:mm a",
+                  )}
                 </span>
               </div>
             </div>
@@ -54,7 +67,7 @@ export default function OrderDetailSheet({
               <Button variant="outline" size="icon">
                 <Printer className="h-4 w-4" />
               </Button>
-              <Button>Complete Order</Button>
+              <CompleteOrderBtn status={order.status} orderId={order.id} />
             </div>
           </div>
         </SheetHeader>
@@ -66,41 +79,66 @@ export default function OrderDetailSheet({
 
             <div className="relative">
               {buildOrderTimeline(order.order_status_history, order.status).map(
-                (step, index, steps) => (
-                  <div key={step.label} className="relative flex gap-4 pb-6">
-                    <div className="relative flex flex-col items-center w-4 shrink-0">
-                      <span
-                        className={`h-4 w-4 rounded-full flex items-center justify-center ${
-                          step.state === "done"
-                            ? "bg-green-500"
-                            : step.state === "current"
-                              ? "bg-white border-2 border-green-500"
-                              : "bg-slate-200"
-                        }`}
-                      />
-                      {index !== steps.length - 1 && (
-                        <span className="absolute top-4 bottom-0 w-px bg-slate-200" />
-                      )}
-                    </div>
+                (step, index, steps) => {
+                  const isFinalStep = step.label === "Delivered";
+                  const isCompletedFinal = isFinalStep && step.state === "done";
 
-                    <div>
-                      <p
-                        className={`font-medium ${
-                          step.state === "upcoming"
-                            ? "text-slate-400"
-                            : "text-slate-800"
-                        }`}
-                      >
-                        {step.label}
-                      </p>
-                      <p className="text-xs text-slate-400">
-                        {step.time
-                          ? new Date(step.time).toLocaleString()
-                          : "Pending"}
-                      </p>
+                  return (
+                    <div key={step.label} className="relative flex gap-4 pb-6">
+                      <div className="relative flex flex-col items-center w-4 shrink-0">
+                        <span
+                          className={`h-4 w-4 rounded-full flex items-center justify-center ${
+                            step.state === "current" || isCompletedFinal
+                              ? "bg-green-500"
+                              : step.state === "done"
+                                ? "bg-slate-300"
+                                : "bg-slate-200"
+                          }`}
+                        >
+                          {(step.state === "current" ||
+                            step.state === "done" ||
+                            isCompletedFinal) && (
+                            <Check
+                              className="h-2.5 w-2.5 text-white"
+                              strokeWidth={3}
+                            />
+                          )}
+                        </span>
+
+                        {index !== steps.length - 1 && (
+                          <span className="absolute top-4 bottom-0 w-px bg-slate-200" />
+                        )}
+                      </div>
+
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p
+                            className={`font-medium ${
+                              step.state === "upcoming"
+                                ? "text-slate-400"
+                                : "text-slate-800"
+                            }`}
+                          >
+                            {step.label}
+                          </p>
+
+                          {isCompletedFinal && (
+                            <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700">
+                              Order Completed
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-slate-400">
+                          {step.time
+                            ? format(new Date(step.time), "M/d/yyyy, h:mm a")
+                            : step.state === "upcoming"
+                              ? "Pending"
+                              : "Completed"}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ),
+                  );
+                },
               )}
             </div>
           </div>

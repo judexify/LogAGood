@@ -1,13 +1,40 @@
+"use client";
+
 import InputBox from "@/components/shared/InputBox";
 import { Button } from "@/components/ui/button";
 import { Download, Filter, Plus } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useDebouncedCallback } from "use-debounce";
+import { useState } from "react";
 
 function OrderCTA() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const [value, setValue] = useState<string>(searchParams?.get("query") ?? "");
+
+  const updateUrlParams = useDebouncedCallback((value) => {
+    const params = new URLSearchParams(searchParams);
+    if (value) {
+      params.set("query", value);
+    } else {
+      params.delete("query");
+    }
+    params.set("page", "1");
+    router.replace(`?${params.toString()}`);
+  }, 500);
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setValue(event.target.value);
+    updateUrlParams(event.target.value);
+  };
+
   return (
     <div className="flex items-center justify-between">
       <div className="w-160">
         <InputBox
-          placeholderText="Search Orders, Orders and Tracking ID"
+          value={value}
+          onChange={handleChange}
+          placeholderText="Search Customer's Name"
           className="rounded-3xl"
         />
       </div>

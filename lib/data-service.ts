@@ -68,10 +68,10 @@ export async function getOrders(
 
   let query = supabaseClient.from("orders").select(
     `
-      id, status, priority, created_at, pickup_address, dropoff_address, delivery_notes,
-      customer:users ( full_name, email, phone ),
-      rider:riders ( id, user:users ( full_name, phone ) )
-      `,
+  id, status, priority, created_at, pickup_address, dropoff_address, delivery_notes,
+  customer:users!inner ( full_name, email, phone ),
+  rider:riders ( id, user:users ( full_name, phone ) )
+  `,
     { count: "exact" },
   );
 
@@ -80,7 +80,9 @@ export async function getOrders(
   if (riderId) query = query.eq("rider_id", riderId);
   if (dateFrom) query = query.gte("created_at", dateFrom);
   if (dateTo) query = query.lte("created_at", dateTo);
-  if (searchQuery) query = query.ilike("id", `%${searchQuery}%`);
+  if (searchQuery) {
+    query = query.ilike("customer.full_name", `%${searchQuery}%`);
+  }
 
   query = query.order("created_at", { ascending: sortBy === "oldest" });
   query = query.range(from, to);
