@@ -1,12 +1,24 @@
 import CustomerNavLinks from "@/components/customer/CustomerNavLinks";
 import Header from "@/components/shared/Header";
 import SideNavigation from "@/components/shared/SideNavigation";
+import { getCurrentUser } from "@/lib/data-service";
+import { createClient } from "@/lib/supabase/server";
 
-export default function CustomerLayout({
+export default async function CustomerLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getClaims();
+  const userId = data?.claims?.sub;
+
+  const currentUser = await getCurrentUser(supabase, userId || "");
+
+  if (!currentUser) {
+    return null;
+  }
+
   return (
     <div className="grid grid-cols-[260px_1fr] grid-rows-[auto_1fr] h-screen">
       <div className="row-span-2">
@@ -15,7 +27,7 @@ export default function CustomerLayout({
         </SideNavigation>
       </div>
 
-      <Header />
+      <Header userName={currentUser.full_name} role={currentUser.role} />
 
       <div className="overflow-y-auto p-6">{children}</div>
     </div>
